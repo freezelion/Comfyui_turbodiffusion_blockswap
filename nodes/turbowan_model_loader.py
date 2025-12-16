@@ -47,9 +47,9 @@ class TurboWanModelLoader:
                 "model_name": (folder_paths.get_filename_list("diffusion_models"),),
             },
             "optional": {
-                "attention_type": (["sagesla", "sla", "original"], {
-                    "default": "sagesla",
-                    "tooltip": "Attention mechanism (sagesla recommended for speed)"
+                "attention_type": (["original", "sla", "sagesla"], {
+                    "default": "original",
+                    "tooltip": "Attention mechanism (original=standard, sla=sparse, sagesla=requires SpargeAttn)"
                 }),
                 "sla_topk": ("FLOAT", {
                     "default": 0.1,
@@ -66,7 +66,7 @@ class TurboWanModelLoader:
     CATEGORY = "loaders"
     DESCRIPTION = "Load TurboDiffusion quantized models using official inference code"
 
-    def load_model(self, model_name, attention_type="sagesla", sla_topk=0.1):
+    def load_model(self, model_name, attention_type="original", sla_topk=0.1):
         """
         Load a TurboDiffusion quantized model using official create_model().
 
