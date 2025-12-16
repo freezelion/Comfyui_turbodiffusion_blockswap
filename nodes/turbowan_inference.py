@@ -57,9 +57,9 @@ class TurboDiffusionI2VSampler:
                     "default": 4,
                     "tooltip": "Number of sampling steps (1-4 for distilled model)"
                 }),
-                "resolution": (["480p", "720p", "1080p"], {
-                    "default": "720p",
-                    "tooltip": "Base resolution"
+                "resolution": (["480", "480p", "512", "720", "720p"], {
+                    "default": "480",
+                    "tooltip": "Base resolution (480=480x480, 480p=640x640 for 1:1)"
                 }),
                 "aspect_ratio": (["16:9", "9:16", "4:3", "3:4", "1:1"], {
                     "default": "16:9",
