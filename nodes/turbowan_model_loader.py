@@ -10,6 +10,7 @@ import torch
 import folder_paths
 import comfy.sd
 import comfy.model_management
+import comfy.model_patcher
 
 # Import from vendored TurboDiffusion code (no external dependency needed!)
 try:
@@ -149,19 +150,30 @@ class TurboWanModelLoader:
             print(f"Quantized: {args.quant_linear}")
             print(f"{'='*60}\n")
 
-            # Try to load with ComfyUI's system
-            # This allows the model to work with ComfyUI's model management
+            # Wrap with ComfyUI's ModelPatcher for automatic memory management
+            # This enables automatic model offloading/loading as needed
             try:
-                # Create a minimal model dict that ComfyUI can understand
-                model_dict = {
-                    "model": model,
-                    "model_type": "turbodiffusion"
-                }
-                return (model_dict,)
+                # Get load and offload devices from ComfyUI's model management
+                load_device = comfy.model_management.get_torch_device()
+                offload_device = comfy.model_management.unet_offload_device()
+
+                # Create ModelPatcher to enable ComfyUI's memory management
+                # This will automatically offload the model when not in use
+                model_patcher = comfy.model_patcher.ModelPatcher(
+                    model=model,
+                    load_device=load_device,
+                    offload_device=offload_device
+                )
+
+                print(f"Wrapped model with ComfyUI ModelPatcher")
+                print(f"Load device: {load_device}, Offload device: {offload_device}")
+                print("Model will be automatically managed (load/offload) by ComfyUI")
+
+                return (model_patcher,)
             except Exception as e:
-                print(f"Note: Could not wrap with ComfyUI model management: {e}")
-                print("Returning raw TurboDiffusion model")
-                # Return raw model if ComfyUI wrapping fails
+                print(f"Warning: Could not wrap with ComfyUI ModelPatcher: {e}")
+                print("Returning raw model (manual memory management required)")
+                # Fallback: return raw model wrapped in a simple dict
                 return ({"model": model, "model_type": "turbodiffusion"},)
 
         except Exception as e:
