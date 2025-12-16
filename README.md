@@ -42,19 +42,17 @@ git clone https://github.com/your-org/comfyui-turbodiffusion.git
 
 ### Download Required Models
 
-Place the following files in `ComfyUI/models/`:
+This node pack uses quantized `.pth` models with TurboDiffusion's optimizations.
 
-**Diffusion Models** (`diffusion_models/`):
-- `wan2.2_i2v_high_noise_14B_fp8_scaled.safetensors` (High noise expert, ~14.5GB)
-- `wan2.2_i2v_low_noise_14B_fp8_scaled.safetensors` (Low noise expert, ~14.5GB)
+Place the following files in `ComfyUI/models/diffusion_models/`:
 
-**Text Encoder** (`text_encoders/`):
-- `nsfw_wan_umt5-xxl_fp8_scaled.safetensors` (umT5-XXL, ~2GB)
+**Diffusion Models**:
+- `TurboWan2.2-I2V-A14B-high-720P-quant.pth` (High noise expert)
+- `TurboWan2.2-I2V-A14B-low-720P-quant.pth` (Low noise expert)
 
-**VAE** (`vae/`):
-- `wan_2.1_vae.safetensors` (Wan2.1 VAE, ~2GB)
+Download from: https://huggingface.co/thu-ml/TurboWan2.2-I2V-A14B
 
-Download from: https://huggingface.co/Comfy-Org/Wan_2.2_ComfyUI_Repackaged
+**Note**: These are int8 block-wise quantized models optimized for TurboDiffusion inference. The custom TurboWanModelLoader handles the quantization automatically.
 
 ## Usage
 
@@ -64,10 +62,9 @@ The TurboWan workflow follows the standard ComfyUI pattern:
 
 ```
 Step 1: Load Models
-├─ UNETLoader → High Noise Model
-├─ UNETLoader → Low Noise Model
-├─ CLIPLoader → umT5 Text Encoder
-└─ VAELoader → Wan2.1 VAE
+├─ TurboWanModelLoader → High Noise Model (.pth quantized)
+├─ TurboWanModelLoader → Low Noise Model (.pth quantized)
+├─ (Uses built-in text encoder and VAE from model)
 
 Step 2: Create Prompts
 ├─ CLIPTextEncode → Positive Prompt
