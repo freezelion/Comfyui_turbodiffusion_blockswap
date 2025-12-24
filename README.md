@@ -1,6 +1,38 @@
-# ComfyUI TurboDiffusion I2V
+# ComfyUI TurboDiffusion I2V with Block Swap Optimization
 
-ComfyUI custom node for [TurboDiffusion](https://github.com/thu-ml/TurboDiffusion) Image-to-Video generation with dual-expert sampling and SLA attention optimization.
+**Forked from**: [anveshane/Comfyui_turbodiffusion](https://github.com/anveshane/Comfyui_turbodiffusion)
+
+This is an enhanced fork of the original ComfyUI TurboDiffusion I2V custom node, specifically focused on VRAM optimization through intelligent block swapping technology.
+
+## 🚀 Key Differences from Original
+
+### 1. **Block Swap Optimization (New Feature)**
+- **Intelligent VRAM Management**: Dynamic block swapping to minimize VRAM usage
+- **Three Swap Modes**: `adaptive` (recommended), `layerwise`, `chunkwise`
+- **Auto-Detection**: Automatically detects GPU memory and optimizes parameters
+- **20GB VRAM Optimized**: Specialized optimization for 20GB VRAM systems
+
+### 2. **Enhanced Memory Management**
+- **Multiple Offload Modes**: `block_swap`, `comfy_native`, `layerwise_gpu`, `cpu_only`
+- **Dynamic Adjustment**: Real-time VRAM monitoring and adjustment
+- **Reduced OOM Errors**: Significantly lower memory usage for large models
+
+### 3. **Improved Import System**
+- **Fixed Import Issues**: Resolved `turbodiffusion_vendor` import problems
+- **Better Error Handling**: Detailed error messages and debugging information
+- **Vendor Module Support**: Proper handling of vendored TurboDiffusion code
+
+### 4. **Documentation & Guides**
+- **Optimization Guide**: Detailed guide for different VRAM sizes
+- **Performance Tuning**: Step-by-step optimization instructions
+- **Troubleshooting**: Enhanced troubleshooting section
+
+## 📋 Original Features (Preserved)
+- Complete I2V pipeline with dual-expert sampling
+- SLA attention optimization (2-3x faster inference)
+- Support for quantized .pth models
+- Automatic model loading/offloading
+- Vendored code (no external TurboDiffusion installation required)
 
 ## Features
 
@@ -25,7 +57,7 @@ cd ComfyUI/custom_nodes/
 
 2. Clone this repository:
 ```bash
-git clone https://github.com/anveshane/Comfyui_turbodiffusion.git
+git clone https://github.com/freezelion/Comfyui_turbodiffusion_blockswap.git
 ```
 
 3. Restart ComfyUI
