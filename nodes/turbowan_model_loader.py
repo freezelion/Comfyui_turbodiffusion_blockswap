@@ -71,6 +71,7 @@ except Exception as e:
 # Import lazy loader
 from ..utils.lazy_loader import LazyModelLoader
 from ..utils.timing import TimedLogger
+from ..utils.comfyui_model_patch import add_comfyui_attributes, create_comfyui_compatible_model
 
 
 class TurboWanModelLoader:
@@ -370,6 +371,17 @@ class TurboWanModelLoader:
             logger.log(f"Quantized: {args.quant_linear}")
             if target_device is not None and str(target_device).startswith('cuda'):
                 logger.log(f"Offload mode: {getattr(args, 'offload_mode', 'layerwise_gpu')}")
+            
+            # Add ComfyUI compatibility attributes for LoRA loading
+            logger.log("Adding ComfyUI compatibility attributes...")
+            try:
+                model = add_comfyui_attributes(model)
+                logger.log("✓ Added ComfyUI attributes (model_config, etc.)")
+            except Exception as e:
+                logger.log(f"⚠️ Failed to add ComfyUI attributes: {e}")
+                logger.log("Creating ComfyUI wrapper instead...")
+                model = create_comfyui_compatible_model(model)
+                logger.log("✓ Created ComfyUI wrapper")
 
             return model
 
