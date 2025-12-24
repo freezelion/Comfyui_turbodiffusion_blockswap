@@ -19,13 +19,59 @@ from ..utils.timing import TimedLogger
 
 # Import from vendored TurboDiffusion code
 try:
-    from ..turbodiffusion_vendor.rcm.datasets.utils import VIDEO_RES_SIZE_INFO
-    from ..turbodiffusion_vendor.rcm.tokenizers.wan2pt1 import Wan2pt1VAEInterface
-    from ..turbodiffusion_vendor.rcm.cm_sampler import rcm_sampler
+    # Manually add turbodiffusion_vendor directory to sys.path
+    import sys
+    import os
+    import importlib.util
+    
+    # Get the absolute path to the turbodiffusion_vendor directory
+    current_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else os.getcwd()
+    vendor_dir = os.path.join(current_dir, '..', 'turbodiffusion_vendor')
+    vendor_dir = os.path.abspath(vendor_dir)
+    
+    print(f"[TurboDiffusion] Vendor directory: {vendor_dir}")
+    
+    # Check if vendor directory exists
+    if not os.path.exists(vendor_dir):
+        raise ImportError(f"Vendor directory does not exist: {vendor_dir}")
+    
+    # Add vendor directory to sys.path
+    if vendor_dir not in sys.path:
+        sys.path.insert(0, vendor_dir)
+    
+    # Use importlib to import turbodiffusion_vendor
+    spec = importlib.util.spec_from_file_location(
+        "turbodiffusion_vendor",
+        os.path.join(vendor_dir, "__init__.py")
+    )
+    if spec is None:
+        raise ImportError(f"Could not create spec for turbodiffusion_vendor")
+    
+    turbodiffusion_vendor = importlib.util.module_from_spec(spec)
+    sys.modules["turbodiffusion_vendor"] = turbodiffusion_vendor
+    spec.loader.exec_module(turbodiffusion_vendor)
+    
+    print(f"[TurboDiffusion] Successfully imported turbodiffusion_vendor")
+    
+    # Now import the required modules
+    from turbodiffusion_vendor.rcm.datasets.utils import VIDEO_RES_SIZE_INFO
+    print("[TurboDiffusion] Successfully imported VIDEO_RES_SIZE_INFO")
+    
+    from turbodiffusion_vendor.rcm.tokenizers.wan2pt1 import Wan2pt1VAEInterface
+    print("[TurboDiffusion] Successfully imported Wan2pt1VAEInterface")
+    
+    from turbodiffusion_vendor.rcm.cm_sampler import rcm_sampler
+    print("[TurboDiffusion] Successfully imported rcm_sampler")
+    
     TURBODIFFUSION_AVAILABLE = True
-except ImportError as e:
+except Exception as e:
     TURBODIFFUSION_AVAILABLE = False
     print(f"ERROR: Could not import TurboDiffusion modules: {e}")
+    print(f"[TurboDiffusion] sys.path: {sys.path}")
+    print(f"[TurboDiffusion] Current dir: {current_dir if 'current_dir' in locals() else 'unknown'}")
+    print(f"[TurboDiffusion] Vendor dir: {vendor_dir if 'vendor_dir' in locals() else 'unknown'}")
+    import traceback
+    traceback.print_exc()
 
 
 class TurboDiffusionI2VSampler:

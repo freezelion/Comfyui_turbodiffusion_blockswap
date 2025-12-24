@@ -170,6 +170,22 @@ With SLA attention on RTX 3090:
 - Automatic offloading after each sampling stage
 - Text embeddings kept on CPU until needed for conditioning
 
+**Block Swap Optimization (New Feature):**
+- Intelligent block swapping to minimize VRAM usage
+- Three swap modes: `adaptive` (recommended), `layerwise`, `chunkwise`
+- Dynamic VRAM monitoring and adjustment
+- Automatic optimization for different GPU memory sizes
+- For 20GB VRAM: Uses 16GB max, 300MB block size, adaptive mode by default
+
+**Offload Modes:**
+- `comfy_native`: Uses ComfyUI's async weight offloading
+- `layerwise_gpu`: Swaps blocks to GPU just-in-time
+- `block_swap`: Intelligent block swapping with VRAM optimization (recommended for low VRAM)
+- `cpu_only`: Runs entire forward pass on CPU (slow)
+
+**Optimization Guide:**
+See `utils/block_swap_optimization_guide.md` for detailed optimization strategies for different VRAM sizes.
+
 ## Troubleshooting
 
 **"ModuleNotFoundError"**: Restart ComfyUI after installation
