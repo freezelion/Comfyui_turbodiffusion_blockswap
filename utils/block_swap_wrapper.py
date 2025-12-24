@@ -292,6 +292,9 @@ class BlockSwapModule(nn.Module):
 class BlockSwapWrapper(nn.Module):
     """
     Main wrapper that applies block swapping to a model.
+    
+    This wrapper is designed to be compatible with ComfyUI's model interface,
+    supporting attributes like model_config that are required for LoRA loading.
     """
     
     def __init__(
@@ -315,7 +318,8 @@ class BlockSwapWrapper(nn.Module):
             verbose: Enable verbose logging
         """
         super().__init__()
-        self.model = model
+        # Store model directly in __dict__ to avoid __getattr__ recursion
+        self.__dict__['model'] = model
         self.manager = BlockSwapManager(
             device=device,
             max_vram_gb=max_vram_gb,
@@ -326,15 +330,35 @@ class BlockSwapWrapper(nn.Module):
         )
         
         # Keep model on CPU initially
-        self.model.to("cpu")
-        self.model.eval()
+        model.to("cpu")
+        model.eval()
         
         # Apply block swapping to appropriate modules
         self._apply_wrapping()
         
+        # Forward model_config and other ComfyUI attributes
+        self._forward_comfyui_attributes()
+        
         # Log initial stats
         if verbose:
             self._log_initial_stats()
+    
+    def _forward_comfyui_attributes(self):
+        """Forward ComfyUI-specific attributes from wrapped model."""
+        # Forward model_config if it exists
+        if hasattr(self.model, 'model_config'):
+            self.model_config = self.model.model_config
+        
+        # Forward other common ComfyUI attributes
+        comfyui_attrs = [
+            'model_config', 'model_type', 'diffusion_model', 'latent_format',
+            'vae', 'conditioning_key', 'parameterization', 'scale_factor',
+            'disable_unet_model_creation', 'unet_config', 'adm_in_channels'
+        ]
+        
+        for attr in comfyui_attrs:
+            if hasattr(self.model, attr):
+                setattr(self, attr, getattr(self.model, attr))
     
     def _estimate_model_size(self) -> int:
         """Estimate total model size in bytes."""
@@ -419,6 +443,38 @@ class BlockSwapWrapper(nn.Module):
     
     def __call__(self, *args, **kwargs):
         return self.forward(*args, **kwargs)
+    
+    def __getattr__(self, name):
+        """
+        Forward attribute access to wrapped model if not found in wrapper.
+        This enables compatibility with ComfyUI's model interface.
+        """
+        # First check if attribute exists in wrapper
+        if name in self.__dict__:
+            return self.__dict__[name]
+        
+        # Special handling for 'model' attribute
+        if name == 'model':
+            # Try to get it from __dict__ first
+            if 'model' in self.__dict__:
+                return self.__dict__['model']
+            # Otherwise use object.__getattribute__
+            try:
+                return object.__getattribute__(self, 'model')
+            except AttributeError:
+                raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+        
+        # Then check if attribute exists in wrapped model
+        # Use object.__getattribute__ to avoid recursion
+        try:
+            model = object.__getattribute__(self, 'model')
+            if hasattr(model, name):
+                return getattr(model, name)
+        except AttributeError:
+            pass
+        
+        # If attribute not found, raise AttributeError
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
     
     def to(self, device):
         """Update target device."""
